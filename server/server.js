@@ -1,13 +1,16 @@
-const http = require('http');
+const express = require("express");
+const app = express();
+const PORT = process.env.PORT || 5050;
 
-const PORT = 3000;
+// Your middlewares
+app.use(express.json());
 
-const server = http.createServer((req, res) => {
-  res.statusCode = 200;
-  res.setHeader('Content-Type', 'text/plain');
-  res.end('✅ Hello from Node.js server!\n');
+// Default route
+app.get("/", (req, res) => {
+  res.send("API is running...");
 });
 
-server.listen(PORT, () => {
-  console.log(`🚀 Server is running at http://localhost:${PORT}`);
+// Start server
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
