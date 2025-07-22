@@ -28,3 +28,16 @@ export const loginUser = async ({ email, password }) => {
   if (!isMatch) throw new Error('Invalid credentials');
   return user;
 };
+
+export const getUserById = async (id) => {
+  return await prisma.user.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      role: true,
+      createdAt: true
+    }
+  });
+}
