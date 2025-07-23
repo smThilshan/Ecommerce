@@ -28,9 +28,9 @@ export const getProduct = async (req, res) => {
 
 // POST /api/products - Add new product (admin only)
 export const addProduct = async (req, res) => {
-  const { title, description, price, stock } = req.body;
+  
   try {
-    const newProduct = await productService.createProduct({ title, description, price, stock });
+    const newProduct = await productService.createProduct(req.body);
     res.status(201).json(newProduct);
   } catch (err) {
     console.error(err);

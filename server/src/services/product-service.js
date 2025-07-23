@@ -12,12 +12,17 @@ export const getProductById = async (id) => {
 }
 
 export const createProduct = async (data) => {
+   const { title, description, price, stock } = data; 
   return await prisma.product.create({
     data: { title, description, price, stock }
   });
 }
 
 export const updateProduct = async (id, data) => {
+  const { title, description, price, stock } = data;
+  // Ensure the product exists before updating
+  const existingProduct = await prisma.product.findUnique({ where: { id } });
+  if (!existingProduct) throw new Error('Product not found');
   return await prisma.product.update({
     where: { id },
     data: { title, description, price, stock }
