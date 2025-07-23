@@ -15,40 +15,52 @@ datasource db {
 }
 
 model Product {
-  id          Int          @id @default(autoincrement())
+  id          Int      @id @default(autoincrement())
   title       String
   description String
   price       Float
   stock       Int
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  orderItems  OrderItem[]  
+  orderItems OrderItem[]
+  cartItems CartItem[]
 }
 
-
 model Order {
-  id         Int      @id @default(autoincrement())
+  id         Int         @id @default(autoincrement())
   userId     Int
-  user       User     @relation(fields: [userId], references: [id])
+  user       User        @relation(fields: [userId], references: [id])
   total      Float
-  createdAt  DateTime @default(now())
+  createdAt  DateTime    @default(now())
   orderItems OrderItem[]
 }
 
+model CartItem {
+  id        Int @id @default(autoincrement())
+  userId    Int
+  productId Int
+  quantity  Int @default(1)
+
+  user    User    @relation(fields: [userId], references: [id])
+  product Product @relation(fields: [productId], references: [id])
+
+  @@unique([userId, productId]) // Ensure one product per user in cart
+}
 
 model User {
-  id        Int      @id @default(autoincrement())
+  id        Int        @id @default(autoincrement())
   name      String
-  email     String   @unique
+  email     String     @unique
   password  String
-  role      String   @default("customer")
-  createdAt DateTime @default(now())
+  role      String     @default("customer")
+  createdAt DateTime   @default(now())
   orders    Order[]
+  cartItems CartItem[]
 }
 
 model OrderItem {
-  id        Int     @id @default(autoincrement())
+  id        Int   @id @default(autoincrement())
   orderId   Int
   productId Int
   quantity  Int
@@ -57,4 +69,3 @@ model OrderItem {
   order   Order   @relation(fields: [orderId], references: [id])
   product Product @relation(fields: [productId], references: [id])
 }
-
