@@ -2,6 +2,7 @@ import express from "express";
 import userRoutes from "./src/routes/user-routes.js";
 import productRoutes from "./src/routes/product-routes.js";
 import cartRoutes from "./src/routes/cart-routes.js";
+import orderRoutes from "./src/routes/order-routes.js";
 import cors from "cors";
 
 const app = express();
@@ -23,6 +24,7 @@ app.use((req, res, next) => {
 app.use('/api/users', userRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/carts', cartRoutes);
+app.use('/api/orders', orderRoutes);
 
 // Default route
 app.get("/", (req, res) => {
