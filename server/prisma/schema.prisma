@@ -19,6 +19,7 @@ model Product {
   title       String
   description String
   price       Float
+  isDeleted Boolean  @default(false)
   stock       Int
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -33,6 +34,7 @@ model Order {
   user       User        @relation(fields: [userId], references: [id])
   total      Float
   createdAt  DateTime    @default(now())
+  shippingAddress String?
   orderItems OrderItem[]
 }
 

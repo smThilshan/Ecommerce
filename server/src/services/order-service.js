@@ -1,73 +1,52 @@
-
-// export const placeOrder = async (userId, items, _totalAmountFromClient) => {
-//   // Step 1: Get product prices from DB
-//   const productIds = items.map(item => item.productId);
-//   const products = await prisma.product.findMany({
-//     where: { id: { in: productIds } },
-//     select: { id: true, price: true }
-//   });
-
 import { prisma } from "../prisma.js";
 
-//   // Step 2: Calculate total
-//   let totalAmount = 0;
-//   for (const item of items) {
-//     const product = products.find(p => p.id === item.productId);
-//     if (!product) throw new Error(`Product ID ${item.productId} not found`);
-//     totalAmount += product.price * item.quantity;
-//   }
-
-//   // Step 3: Create order
-//   const order = await prisma.order.create({
-//     data: {
-//       userId,
-//       totalAmount,
-//     //   shippingAddress,
-//       items: {
-//         create: items.map(item => ({
-//           productId: item.productId,
-//           quantity: item.quantity
-//         }))
-//       }
-//     },
-//     include: { items: true }
-//   });
-
-//   return order;
-// };
-
-
-export const placeOrder = async (userId, items) => {
-  const productIds = items.map(item => item.productId);
-  const products = await prisma.product.findMany({
-    where: { id: { in: productIds } },
-    select: { id: true, price: true }
+export const placeOrder = async (userId, shippingAddress) => {
+  // Step 1: Get all cart items for the user including product info
+  const cartItems = await prisma.cartItem.findMany({
+    where: { userId },
+    include: { product: true } // Needed to access product price
   });
 
-  let total = 0;
-  for (const item of items) {
-    const product = products.find(p => p.id === item.productId);
-    if (!product) throw new Error(`Product ID ${item.productId} not found`);
-    total += product.price * item.quantity;
+  // Step 2: If cart is empty, throw an error
+  if (cartItems.length === 0) {
+    throw new Error('Cart is empty');
   }
 
-  const order = await prisma.order.create({
-    data: {
-      userId,
-      total,
-      orderItems: {
-        create: items.map(item => ({
-          productId: item.productId,
-          quantity: item.quantity,
-          price: products.find(p => p.id === item.productId)?.price || 0
-        }))
-      }
-    },
-    include: { orderItems: true }
-  });
+  // Step 3: Calculate the total amount for the order
+  const total = cartItems.reduce((sum, item) => {
+    return sum + item.product.price * item.quantity;
+  }, 0);
 
+  // Step 4: Prepare the order data including orderItems
+  const orderData = {
+    userId,
+    total,
+    shippingAddress,
+    orderItems: {  // <-- correct field name
+    create: cartItems.map(item => ({
+      productId: item.productId,
+      quantity: item.quantity,
+      price: item.product.price
+    }))
+  }
+  };
+
+  // Step 5: Execute both order creation and cart clearing inside a transaction
+  const [order] = await prisma.$transaction([
+    // Create a new order along with orderItems
+    prisma.order.create({
+      data: orderData,
+      include: { orderItems: true } // Include orderItems in the result
+    }),
+
+    // Clear all cart items for the user after placing the order
+    prisma.cartItem.deleteMany({ where: { userId } })
+  ]);
+
+  // Step 6: Return the created order (with orderItems included)
   return order;
 };
+
 
 export const getUserOrdersService = async (userId) => {
   return await prisma.order.findMany({

@@ -2,7 +2,9 @@ import e from 'express';
 import {prisma} from '../prisma.js';
 
 export const getAllProducts = async () => {
-  return await prisma.product.findMany();
+  return await prisma.product.findMany({
+     where: { isDeleted: false }, 
+  });
 }
 
 export const getProductById = async (id) => {
@@ -30,7 +32,8 @@ export const updateProduct = async (id, data) => {
 }
 
 export const deleteProduct = async (id) => {
-  return await prisma.product.delete({
-    where: { id }
+  return await prisma.product.update({
+    where: { id },
+    data: { isDeleted: true },
   });
 }

@@ -1,23 +1,19 @@
 import * as orderService from "../services/order-service.js";
 
 export const placeOrder = async (req, res) => {
-    try {
+  try {
     const userId = req.user.id;
+    const { shippingAddress } = req.body;
 
-    const { items } = req.body;
+    const order = await orderService.placeOrder(userId, shippingAddress);
 
-    if (!items || items.length === 0) {
-      return res.status(400).json({ message: "Order items are required" });
-    }
-
-    const newOrder = await orderService.placeOrder(userId, items);
-
-    res.status(201).json(newOrder);
+    res.status(201).json({ message: 'Order placed', order });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: "Failed to place order" });
+    res.status(500).json({ message: 'Failed to place order' });
   }
-}
+};
+
 
 export const getUserOrders = async (req, res) => {
   try {
